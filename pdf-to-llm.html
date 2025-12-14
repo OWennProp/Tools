@@ -16,7 +16,7 @@
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      max-width: 900px;
+      max-width: 1000px;
       margin: 0 auto;
       padding: 1.5em;
       line-height: 1.5;
@@ -30,6 +30,41 @@
       color: #666;
       margin-bottom: 1.5em;
     }
+    .tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 0;
+    }
+    .tab {
+      padding: 0.75em 1.5em;
+      background: #e8e8e8;
+      border: 1px solid #ddd;
+      border-bottom: none;
+      cursor: pointer;
+      font-size: 14px;
+      border-radius: 8px 8px 0 0;
+      margin-right: -1px;
+    }
+    .tab:hover {
+      background: #f0f0f0;
+    }
+    .tab.active {
+      background: white;
+      border-bottom: 1px solid white;
+      margin-bottom: -1px;
+      z-index: 1;
+    }
+    .tab-content {
+      display: none;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 0 8px 8px 8px;
+      padding: 1.5em;
+      margin-bottom: 1em;
+    }
+    .tab-content.active {
+      display: block;
+    }
     .dropzone {
       width: 100%;
       min-height: 120px;
@@ -42,8 +77,9 @@
       cursor: pointer;
       padding: 1em;
       margin-bottom: 1em;
-      background: white;
+      background: #fafafa;
       transition: all 0.2s;
+      text-align: center;
     }
     .dropzone:hover {
       border-color: #999;
@@ -57,11 +93,11 @@
       background: #f5f5f5;
     }
     .options {
-      background: white;
+      background: #fafafa;
       padding: 1em;
       border-radius: 8px;
       margin-bottom: 1em;
-      border: 1px solid #ddd;
+      border: 1px solid #eee;
     }
     .options h3 {
       margin: 0 0 0.75em 0;
@@ -69,9 +105,13 @@
       text-transform: uppercase;
       color: #666;
     }
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.5em;
+    }
     .options label {
       display: block;
-      margin-bottom: 0.5em;
       cursor: pointer;
     }
     .options input[type="checkbox"] {
@@ -85,15 +125,15 @@
     }
     .stats {
       display: flex;
-      gap: 1.5em;
+      gap: 1em;
       margin-bottom: 1em;
       flex-wrap: wrap;
     }
     .stat {
-      background: white;
+      background: #fafafa;
       padding: 0.75em 1em;
       border-radius: 8px;
-      border: 1px solid #ddd;
+      border: 1px solid #eee;
     }
     .stat-label {
       font-size: 12px;
@@ -126,6 +166,8 @@
       display: flex;
       gap: 0.5em;
       margin-top: 0.75em;
+      flex-wrap: wrap;
+      align-items: center;
     }
     button {
       padding: 0.6em 1.2em;
@@ -140,18 +182,21 @@
       background: #f5f5f5;
       border-color: #999;
     }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
     button.primary {
       background: #4a90d9;
       color: white;
       border-color: #4a90d9;
     }
-    button.primary:hover {
+    button.primary:hover:not(:disabled) {
       background: #3a7fc8;
     }
     .copy-feedback {
       color: #2a9d2a;
       font-size: 14px;
-      margin-left: 0.5em;
       opacity: 0;
       transition: opacity 0.2s;
     }
@@ -171,61 +216,215 @@
     .hidden {
       display: none;
     }
+    /* Batch mode styles */
+    .batch-dropzone {
+      min-height: 100px;
+    }
+    .batch-progress {
+      margin: 1em 0;
+      display: none;
+    }
+    .batch-progress.visible {
+      display: block;
+    }
+    .progress-bar {
+      height: 8px;
+      background: #e8e8e8;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 0.5em;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #4a90d9;
+      transition: width 0.3s;
+      width: 0%;
+    }
+    .progress-text {
+      font-size: 14px;
+      color: #666;
+    }
+    .batch-results {
+      display: none;
+      margin-top: 1em;
+    }
+    .batch-results.visible {
+      display: block;
+    }
+    .batch-file {
+      background: #fafafa;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      padding: 1em;
+      margin-bottom: 0.75em;
+    }
+    .batch-file-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5em;
+    }
+    .batch-file-name {
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .batch-file-tokens {
+      font-size: 13px;
+      color: #666;
+    }
+    .batch-file textarea {
+      height: 150px;
+      font-size: 12px;
+    }
+    .batch-file-actions {
+      display: flex;
+      gap: 0.5em;
+      margin-top: 0.5em;
+    }
+    .batch-file-actions button {
+      padding: 0.4em 0.8em;
+      font-size: 13px;
+    }
+    .zotero-hint {
+      font-size: 13px;
+      color: #666;
+      margin-top: 0.5em;
+    }
+    .zotero-hint code {
+      background: #f0f0f0;
+      padding: 0.2em 0.4em;
+      border-radius: 3px;
+    }
   </style>
 </head>
 <body>
   <h1>PDF to LLM-Ready Text</h1>
   <p class="subtitle">Extract clean, token-efficient text from academic papers. Runs entirely in your browser.</p>
 
-  <input type="file" id="fileInput" accept=".pdf" class="hidden" />
-
-  <div class="dropzone" id="dropzone">
-    Drop a PDF here, or click to select
+  <div class="tabs">
+    <div class="tab active" data-tab="single">Single PDF</div>
+    <div class="tab" data-tab="batch">Batch (Zotero)</div>
   </div>
 
-  <div class="options">
-    <h3>Options</h3>
-    <label>
-      <input type="checkbox" id="optHeaders" checked />
-      Remove headers &amp; footers
-    </label>
-    <label>
-      <input type="checkbox" id="optHyphenation" checked />
-      Fix hyphenation (re-join split words)
-    </label>
-    <label>
-      <input type="checkbox" id="optReferences" />
-      Remove references section
-    </label>
-    <label>
-      <input type="checkbox" id="optLineNumbers" />
-      Remove line numbers (for preprints)
-    </label>
-  </div>
+  <!-- Single PDF Tab -->
+  <div class="tab-content active" id="tab-single">
+    <input type="file" id="fileInput" accept=".pdf" class="hidden" />
 
-  <div class="output-section" id="outputSection">
-    <div class="stats">
-      <div class="stat">
-        <div class="stat-label">Original</div>
-        <div class="stat-value" id="statOriginal">-</div>
-      </div>
-      <div class="stat">
-        <div class="stat-label">Cleaned</div>
-        <div class="stat-value" id="statCleaned">-</div>
-      </div>
-      <div class="stat">
-        <div class="stat-label">Saved</div>
-        <div class="stat-value savings" id="statSaved">-</div>
+    <div class="dropzone" id="dropzone">
+      Drop a PDF here, or click to select
+    </div>
+
+    <div class="options">
+      <h3>Options</h3>
+      <div class="options-grid">
+        <label>
+          <input type="checkbox" id="optHeaders" checked />
+          Remove headers &amp; footers
+        </label>
+        <label>
+          <input type="checkbox" id="optHyphenation" checked />
+          Fix hyphenation
+        </label>
+        <label>
+          <input type="checkbox" id="optReferences" />
+          Remove references section
+        </label>
+        <label>
+          <input type="checkbox" id="optLineNumbers" />
+          Remove line numbers
+        </label>
+        <label>
+          <input type="checkbox" id="optMarkdown" />
+          Format as Markdown
+        </label>
+        <label>
+          <input type="checkbox" id="optAbstractOnly" />
+          Abstract + headings only
+        </label>
       </div>
     </div>
 
-    <div class="output-container">
-      <textarea id="output" readonly></textarea>
-      <div class="actions">
-        <button class="primary" id="copyBtn">Copy to clipboard</button>
-        <button id="downloadBtn">Download as .txt</button>
-        <span class="copy-feedback" id="copyFeedback">Copied!</span>
+    <div class="output-section" id="outputSection">
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label">Original</div>
+          <div class="stat-value" id="statOriginal">-</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Cleaned</div>
+          <div class="stat-value" id="statCleaned">-</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Saved</div>
+          <div class="stat-value savings" id="statSaved">-</div>
+        </div>
       </div>
+
+      <div class="output-container">
+        <textarea id="output" readonly></textarea>
+        <div class="actions">
+          <button class="primary" id="copyBtn">Copy to clipboard</button>
+          <button id="downloadTxtBtn">Download .txt</button>
+          <button id="downloadMdBtn">Download .md</button>
+          <span class="copy-feedback" id="copyFeedback">Copied!</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Batch Tab -->
+  <div class="tab-content" id="tab-batch">
+    <input type="file" id="folderInput" webkitdirectory multiple class="hidden" />
+    <input type="file" id="multiFileInput" accept=".pdf" multiple class="hidden" />
+
+    <div class="dropzone batch-dropzone" id="batchDropzone">
+      Drop PDFs here, or click to select files/folder<br>
+      <small style="color: #888;">Supports multiple files or a Zotero storage folder</small>
+    </div>
+
+    <p class="zotero-hint">
+      Zotero storage is typically at <code>~/Zotero/storage/</code> (Mac/Linux) or <code>%USERPROFILE%\Zotero\storage</code> (Windows)
+    </p>
+
+    <div class="options">
+      <h3>Batch Options</h3>
+      <div class="options-grid">
+        <label>
+          <input type="checkbox" id="batchOptHeaders" checked />
+          Remove headers &amp; footers
+        </label>
+        <label>
+          <input type="checkbox" id="batchOptHyphenation" checked />
+          Fix hyphenation
+        </label>
+        <label>
+          <input type="checkbox" id="batchOptReferences" />
+          Remove references section
+        </label>
+        <label>
+          <input type="checkbox" id="batchOptMarkdown" />
+          Format as Markdown
+        </label>
+        <label>
+          <input type="checkbox" id="batchOptAbstractOnly" />
+          Abstract + headings only
+        </label>
+      </div>
+    </div>
+
+    <div class="batch-progress" id="batchProgress">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-text" id="progressText">Processing...</div>
+    </div>
+
+    <div class="batch-results" id="batchResults">
+      <div class="actions" style="margin-bottom: 1em;">
+        <button class="primary" id="downloadAllBtn">Download all as .zip</button>
+        <button id="copyAllBtn">Copy all to clipboard</button>
+      </div>
+      <div id="batchFileList"></div>
     </div>
   </div>
 
@@ -234,28 +433,72 @@
     <p>Optimized for academic papers with two-column layouts.</p>
   </footer>
 
+  <!-- JSZip for batch downloads -->
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
 <script type="module">
+// ============ SHARED STATE ============
+let currentFileName = 'document';
+let rawText = '';
+let structuredData = null; // Stores extracted data with heading info
+
+// ============ DOM ELEMENTS ============
+// Tabs
+const tabs = document.querySelectorAll('.tab');
+const tabContents = document.querySelectorAll('.tab-content');
+
+// Single mode
 const dropzone = document.getElementById('dropzone');
 const fileInput = document.getElementById('fileInput');
 const outputSection = document.getElementById('outputSection');
 const outputTextarea = document.getElementById('output');
 const copyBtn = document.getElementById('copyBtn');
-const downloadBtn = document.getElementById('downloadBtn');
+const downloadTxtBtn = document.getElementById('downloadTxtBtn');
+const downloadMdBtn = document.getElementById('downloadMdBtn');
 const copyFeedback = document.getElementById('copyFeedback');
 
 const optHeaders = document.getElementById('optHeaders');
 const optHyphenation = document.getElementById('optHyphenation');
 const optReferences = document.getElementById('optReferences');
 const optLineNumbers = document.getElementById('optLineNumbers');
+const optMarkdown = document.getElementById('optMarkdown');
+const optAbstractOnly = document.getElementById('optAbstractOnly');
 
 const statOriginal = document.getElementById('statOriginal');
 const statCleaned = document.getElementById('statCleaned');
 const statSaved = document.getElementById('statSaved');
 
-let currentFileName = 'document';
-let rawText = '';
+// Batch mode
+const batchDropzone = document.getElementById('batchDropzone');
+const folderInput = document.getElementById('folderInput');
+const multiFileInput = document.getElementById('multiFileInput');
+const batchProgress = document.getElementById('batchProgress');
+const progressFill = document.getElementById('progressFill');
+const progressText = document.getElementById('progressText');
+const batchResults = document.getElementById('batchResults');
+const batchFileList = document.getElementById('batchFileList');
+const downloadAllBtn = document.getElementById('downloadAllBtn');
+const copyAllBtn = document.getElementById('copyAllBtn');
 
-// Event listeners for drag & drop
+const batchOptHeaders = document.getElementById('batchOptHeaders');
+const batchOptHyphenation = document.getElementById('batchOptHyphenation');
+const batchOptReferences = document.getElementById('batchOptReferences');
+const batchOptMarkdown = document.getElementById('batchOptMarkdown');
+const batchOptAbstractOnly = document.getElementById('batchOptAbstractOnly');
+
+let batchProcessedFiles = [];
+
+// ============ TAB SWITCHING ============
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    tabContents.forEach(tc => tc.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
+  });
+});
+
+// ============ SINGLE PDF MODE ============
 dropzone.addEventListener('dragover', (e) => {
   e.preventDefault();
   dropzone.classList.add('drag-over');
@@ -287,71 +530,265 @@ fileInput.addEventListener('change', (e) => {
 });
 
 // Re-process when options change
-[optHeaders, optHyphenation, optReferences, optLineNumbers].forEach(opt => {
+[optHeaders, optHyphenation, optReferences, optLineNumbers, optMarkdown, optAbstractOnly].forEach(opt => {
   opt.addEventListener('change', () => {
-    if (rawText) {
-      const cleaned = cleanText(rawText);
-      displayOutput(cleaned);
+    if (structuredData) {
+      const output = generateOutput(structuredData, getOptions());
+      displayOutput(output);
     }
   });
 });
 
-// Copy button
 copyBtn.addEventListener('click', async () => {
   await navigator.clipboard.writeText(outputTextarea.value);
   copyFeedback.classList.add('show');
   setTimeout(() => copyFeedback.classList.remove('show'), 2000);
 });
 
-// Download button
-downloadBtn.addEventListener('click', () => {
-  const blob = new Blob([outputTextarea.value], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${currentFileName}-cleaned.txt`;
-  a.click();
-  URL.revokeObjectURL(url);
+downloadTxtBtn.addEventListener('click', () => {
+  downloadFile(outputTextarea.value, `${currentFileName}-cleaned.txt`, 'text/plain');
 });
 
+downloadMdBtn.addEventListener('click', () => {
+  downloadFile(outputTextarea.value, `${currentFileName}-cleaned.md`, 'text/markdown');
+});
+
+function getOptions() {
+  return {
+    removeHeaders: optHeaders.checked,
+    fixHyphenation: optHyphenation.checked,
+    removeReferences: optReferences.checked,
+    removeLineNumbers: optLineNumbers.checked,
+    formatMarkdown: optMarkdown.checked,
+    abstractOnly: optAbstractOnly.checked
+  };
+}
+
+function getBatchOptions() {
+  return {
+    removeHeaders: batchOptHeaders.checked,
+    fixHyphenation: batchOptHyphenation.checked,
+    removeReferences: batchOptReferences.checked,
+    removeLineNumbers: false,
+    formatMarkdown: batchOptMarkdown.checked,
+    abstractOnly: batchOptAbstractOnly.checked
+  };
+}
+
+// ============ BATCH MODE ============
+batchDropzone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  batchDropzone.classList.add('drag-over');
+});
+
+batchDropzone.addEventListener('dragleave', (e) => {
+  e.preventDefault();
+  batchDropzone.classList.remove('drag-over');
+});
+
+batchDropzone.addEventListener('drop', async (e) => {
+  e.preventDefault();
+  batchDropzone.classList.remove('drag-over');
+
+  const items = e.dataTransfer.items;
+  const files = [];
+
+  // Handle dropped items (could be files or folders)
+  for (const item of items) {
+    if (item.kind === 'file') {
+      const entry = item.webkitGetAsEntry ? item.webkitGetAsEntry() : null;
+      if (entry && entry.isDirectory) {
+        // It's a folder - recursively get PDFs
+        const folderFiles = await getFilesFromDirectory(entry);
+        files.push(...folderFiles);
+      } else {
+        const file = item.getAsFile();
+        if (file && file.type === 'application/pdf') {
+          files.push(file);
+        }
+      }
+    }
+  }
+
+  if (files.length > 0) {
+    processBatchFiles(files);
+  }
+});
+
+batchDropzone.addEventListener('click', () => {
+  // Show a choice - for simplicity, use multi-file selector
+  // Users can also select folders via the folder picker
+  const choice = confirm('Click OK to select individual PDFs, or Cancel to select a folder');
+  if (choice) {
+    multiFileInput.click();
+  } else {
+    folderInput.click();
+  }
+});
+
+folderInput.addEventListener('change', (e) => {
+  const files = Array.from(e.target.files).filter(f => f.type === 'application/pdf');
+  if (files.length > 0) {
+    processBatchFiles(files);
+  }
+});
+
+multiFileInput.addEventListener('change', (e) => {
+  const files = Array.from(e.target.files);
+  if (files.length > 0) {
+    processBatchFiles(files);
+  }
+});
+
+async function getFilesFromDirectory(directoryEntry) {
+  const files = [];
+
+  async function readDirectory(entry) {
+    return new Promise((resolve) => {
+      const reader = entry.createReader();
+      const entries = [];
+
+      function readEntries() {
+        reader.readEntries(async (results) => {
+          if (results.length === 0) {
+            resolve(entries);
+          } else {
+            entries.push(...results);
+            readEntries();
+          }
+        });
+      }
+      readEntries();
+    });
+  }
+
+  async function processEntry(entry) {
+    if (entry.isFile) {
+      return new Promise((resolve) => {
+        entry.file((file) => {
+          if (file.type === 'application/pdf') {
+            files.push(file);
+          }
+          resolve();
+        });
+      });
+    } else if (entry.isDirectory) {
+      const entries = await readDirectory(entry);
+      for (const e of entries) {
+        await processEntry(e);
+      }
+    }
+  }
+
+  await processEntry(directoryEntry);
+  return files;
+}
+
+async function processBatchFiles(files) {
+  batchProcessedFiles = [];
+  batchFileList.innerHTML = '';
+  batchProgress.classList.add('visible');
+  batchResults.classList.remove('visible');
+
+  const total = files.length;
+  let completed = 0;
+
+  for (const file of files) {
+    progressText.textContent = `Processing ${file.name} (${completed + 1}/${total})...`;
+    progressFill.style.width = `${(completed / total) * 100}%`;
+
+    try {
+      const result = await processFileForBatch(file, getBatchOptions());
+      batchProcessedFiles.push(result);
+    } catch (err) {
+      console.error(`Error processing ${file.name}:`, err);
+      batchProcessedFiles.push({
+        name: file.name,
+        text: `[Error processing file: ${err.message}]`,
+        tokens: 0
+      });
+    }
+
+    completed++;
+  }
+
+  progressFill.style.width = '100%';
+  progressText.textContent = `Done! Processed ${total} files.`;
+
+  // Display results
+  displayBatchResults();
+}
+
+function displayBatchResults() {
+  batchResults.classList.add('visible');
+  batchFileList.innerHTML = '';
+
+  for (let i = 0; i < batchProcessedFiles.length; i++) {
+    const result = batchProcessedFiles[i];
+    const div = document.createElement('div');
+    div.className = 'batch-file';
+    div.innerHTML = `
+      <div class="batch-file-header">
+        <span class="batch-file-name">${escapeHtml(result.name)}</span>
+        <span class="batch-file-tokens">${formatTokens(result.tokens)} tokens</span>
+      </div>
+      <textarea readonly>${escapeHtml(result.text)}</textarea>
+      <div class="batch-file-actions">
+        <button onclick="copyBatchFile(${i})">Copy</button>
+        <button onclick="downloadBatchFile(${i}, 'txt')">Download .txt</button>
+        <button onclick="downloadBatchFile(${i}, 'md')">Download .md</button>
+      </div>
+    `;
+    batchFileList.appendChild(div);
+  }
+}
+
+// Make functions available globally for onclick handlers
+window.copyBatchFile = async (index) => {
+  await navigator.clipboard.writeText(batchProcessedFiles[index].text);
+  alert('Copied to clipboard!');
+};
+
+window.downloadBatchFile = (index, ext) => {
+  const result = batchProcessedFiles[index];
+  const filename = result.name.replace(/\.pdf$/i, '') + `-cleaned.${ext}`;
+  downloadFile(result.text, filename, ext === 'md' ? 'text/markdown' : 'text/plain');
+};
+
+downloadAllBtn.addEventListener('click', async () => {
+  const zip = new JSZip();
+  const ext = batchOptMarkdown.checked ? 'md' : 'txt';
+
+  for (const result of batchProcessedFiles) {
+    const filename = result.name.replace(/\.pdf$/i, '') + `-cleaned.${ext}`;
+    zip.file(filename, result.text);
+  }
+
+  const blob = await zip.generateAsync({ type: 'blob' });
+  downloadFile(blob, 'papers-cleaned.zip', 'application/zip');
+});
+
+copyAllBtn.addEventListener('click', async () => {
+  const separator = '\n\n' + '='.repeat(80) + '\n\n';
+  const combined = batchProcessedFiles.map(r => `# ${r.name}\n\n${r.text}`).join(separator);
+  await navigator.clipboard.writeText(combined);
+  alert('All files copied to clipboard!');
+});
+
+// ============ PDF PROCESSING ============
 async function processFile(file) {
   currentFileName = file.name.replace(/\.pdf$/i, '');
   dropzone.textContent = 'Processing...';
   dropzone.classList.add('processing');
 
   try {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    structuredData = await extractStructuredData(file, (progress) => {
+      dropzone.textContent = progress;
+    });
 
-    const totalPages = pdf.numPages;
-    let allPageData = [];
-
-    // Extract text from all pages with position info
-    for (let i = 1; i <= totalPages; i++) {
-      dropzone.textContent = `Processing page ${i} of ${totalPages}...`;
-      const page = await pdf.getPage(i);
-      const textContent = await page.getTextContent();
-      const viewport = page.getViewport({ scale: 1 });
-
-      allPageData.push({
-        pageNum: i,
-        width: viewport.width,
-        height: viewport.height,
-        items: textContent.items.map(item => ({
-          str: item.str,
-          x: item.transform[4],
-          y: item.transform[5],
-          width: item.width,
-          height: item.height || Math.abs(item.transform[3]),
-          fontName: item.fontName
-        }))
-      });
-    }
-
-    // Reconstruct text with proper reading order
-    rawText = reconstructText(allPageData);
-    const cleaned = cleanText(rawText);
-    displayOutput(cleaned);
+    rawText = structuredData.rawText;
+    const output = generateOutput(structuredData, getOptions());
+    displayOutput(output);
 
     dropzone.textContent = 'Drop another PDF here, or click to select';
     dropzone.classList.remove('processing');
@@ -363,24 +800,65 @@ async function processFile(file) {
   }
 }
 
-function reconstructText(allPageData) {
-  let fullText = '';
+async function processFileForBatch(file, options) {
+  const structuredData = await extractStructuredData(file);
+  const text = generateOutput(structuredData, options);
+  return {
+    name: file.name,
+    text: text,
+    tokens: Math.ceil(text.length / 4)
+  };
+}
 
-  // Detect common headers/footers across pages
-  const headerFooterPatterns = detectHeadersFooters(allPageData);
+async function extractStructuredData(file, onProgress = () => {}) {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
-  for (const pageData of allPageData) {
-    const pageText = processPage(pageData, headerFooterPatterns);
-    fullText += pageText + '\n\n';
+  const totalPages = pdf.numPages;
+  let allPageData = [];
+
+  // Extract text from all pages with position and font info
+  for (let i = 1; i <= totalPages; i++) {
+    onProgress(`Processing page ${i} of ${totalPages}...`);
+    const page = await pdf.getPage(i);
+    const textContent = await page.getTextContent();
+    const viewport = page.getViewport({ scale: 1 });
+    const styles = textContent.styles || {};
+
+    allPageData.push({
+      pageNum: i,
+      width: viewport.width,
+      height: viewport.height,
+      items: textContent.items.map(item => {
+        const fontName = item.fontName || '';
+        const style = styles[fontName] || {};
+        return {
+          str: item.str,
+          x: item.transform[4],
+          y: item.transform[5],
+          width: item.width,
+          height: item.height || Math.abs(item.transform[3]),
+          fontSize: Math.abs(item.transform[0]) || Math.abs(item.transform[3]) || 12,
+          fontName: fontName,
+          isBold: fontName.toLowerCase().includes('bold') || style.fontWeight === 'bold',
+          isItalic: fontName.toLowerCase().includes('italic') || fontName.toLowerCase().includes('oblique')
+        };
+      })
+    });
   }
 
-  return fullText;
+  // Detect headers/footers
+  const headerFooterPatterns = detectHeadersFooters(allPageData);
+
+  // Extract structured content (headings, paragraphs, abstract)
+  const structured = extractStructure(allPageData, headerFooterPatterns);
+
+  return structured;
 }
 
 function detectHeadersFooters(allPageData) {
   if (allPageData.length < 3) return { headers: [], footers: [] };
 
-  // Look for text that appears in the same position on multiple pages
   const topTexts = [];
   const bottomTexts = [];
 
@@ -390,7 +868,6 @@ function detectHeadersFooters(allPageData) {
     const sorted = [...page.items].sort((a, b) => b.y - a.y);
     const pageHeight = page.height;
 
-    // Get items in top 10% and bottom 10% of page
     const topItems = sorted.filter(item => item.y > pageHeight * 0.9);
     const bottomItems = sorted.filter(item => item.y < pageHeight * 0.1);
 
@@ -398,7 +875,6 @@ function detectHeadersFooters(allPageData) {
     bottomTexts.push(bottomItems.map(i => i.str.trim()).filter(s => s).join(' '));
   }
 
-  // Find repeated patterns
   const headers = findRepeatedStrings(topTexts);
   const footers = findRepeatedStrings(bottomTexts);
 
@@ -412,153 +888,300 @@ function findRepeatedStrings(strings) {
       counts[s] = (counts[s] || 0) + 1;
     }
   }
-  // Return strings that appear on at least 30% of pages
   const threshold = Math.max(2, strings.length * 0.3);
   return Object.entries(counts)
     .filter(([_, count]) => count >= threshold)
     .map(([str, _]) => str);
 }
 
-function processPage(pageData, headerFooterPatterns) {
-  let items = pageData.items.filter(item => item.str.trim());
+function extractStructure(allPageData, headerFooterPatterns) {
+  // Calculate median font size to detect headings
+  const allFontSizes = [];
+  for (const page of allPageData) {
+    for (const item of page.items) {
+      if (item.str.trim()) {
+        allFontSizes.push(item.fontSize);
+      }
+    }
+  }
+  allFontSizes.sort((a, b) => a - b);
+  const medianFontSize = allFontSizes[Math.floor(allFontSizes.length / 2)] || 12;
 
-  if (items.length === 0) return '';
+  const sections = [];
+  let currentSection = { heading: null, level: 0, content: [] };
+  let rawTextParts = [];
+  let foundAbstract = false;
+  let abstractContent = [];
 
-  const pageWidth = pageData.width;
-  const pageHeight = pageData.height;
+  for (const pageData of allPageData) {
+    let items = pageData.items.filter(item => item.str.trim());
+    if (items.length === 0) continue;
 
-  // Remove header/footer items if option enabled
-  if (optHeaders.checked) {
+    const pageWidth = pageData.width;
+    const pageHeight = pageData.height;
+
+    // Remove headers/footers
     items = items.filter(item => {
-      // Remove items in top/bottom margins
       if (item.y > pageHeight * 0.92 || item.y < pageHeight * 0.08) {
         const itemText = item.str.trim();
-        // Check if it matches known header/footer patterns
         for (const pattern of [...headerFooterPatterns.headers, ...headerFooterPatterns.footers]) {
           if (pattern.includes(itemText) || itemText.includes(pattern)) {
             return false;
           }
         }
-        // Also remove page numbers
         if (/^\d+$/.test(itemText)) {
           return false;
         }
       }
       return true;
     });
+
+    // Detect two-column layout
+    const midPoint = pageWidth / 2;
+    const leftItems = items.filter(i => i.x < midPoint - 20);
+    const rightItems = items.filter(i => i.x >= midPoint - 20);
+
+    const isTwoColumn = leftItems.length > 10 && rightItems.length > 10 &&
+      leftItems.some(i => i.x < pageWidth * 0.4) &&
+      rightItems.some(i => i.x > pageWidth * 0.5);
+
+    let orderedItems;
+    if (isTwoColumn) {
+      const leftSorted = sortColumnItems(leftItems);
+      const rightSorted = sortColumnItems(rightItems);
+      orderedItems = [...leftSorted, ...rightSorted];
+    } else {
+      orderedItems = sortColumnItems(items);
+    }
+
+    // Group into lines and detect headings
+    const lines = groupIntoLines(orderedItems, medianFontSize);
+
+    for (const line of lines) {
+      const text = line.text;
+      const isHeading = line.isHeading;
+      const headingLevel = line.headingLevel;
+
+      rawTextParts.push(text);
+
+      // Detect abstract
+      if (!foundAbstract && /^abstract$/i.test(text.trim())) {
+        foundAbstract = true;
+        if (currentSection.content.length > 0 || currentSection.heading) {
+          sections.push(currentSection);
+        }
+        currentSection = { heading: 'Abstract', level: 1, content: [] };
+        continue;
+      }
+
+      // Check if this line starts a new section
+      if (isHeading && text.trim().length > 0 && text.trim().length < 100) {
+        // Save previous section
+        if (currentSection.content.length > 0 || currentSection.heading) {
+          // If we were in abstract section, save the abstract content
+          if (currentSection.heading === 'Abstract') {
+            abstractContent = [...currentSection.content];
+          }
+          sections.push(currentSection);
+        }
+        currentSection = { heading: text.trim(), level: headingLevel, content: [] };
+      } else {
+        currentSection.content.push(text);
+      }
+    }
   }
 
-  // Detect if two-column layout
-  const xPositions = items.map(i => i.x);
-  const midPoint = pageWidth / 2;
-  const leftItems = items.filter(i => i.x < midPoint - 20);
-  const rightItems = items.filter(i => i.x >= midPoint - 20);
-
-  const isTwoColumn = leftItems.length > 10 && rightItems.length > 10 &&
-    leftItems.some(i => i.x < pageWidth * 0.4) &&
-    rightItems.some(i => i.x > pageWidth * 0.5);
-
-  let lines;
-
-  if (isTwoColumn) {
-    // Process columns separately
-    const leftText = extractColumn(leftItems, 0, midPoint - 10);
-    const rightText = extractColumn(rightItems, midPoint - 10, pageWidth);
-    lines = [...leftText, ...rightText];
-  } else {
-    // Single column - sort by y position (top to bottom)
-    lines = extractColumn(items, 0, pageWidth);
+  // Don't forget the last section
+  if (currentSection.content.length > 0 || currentSection.heading) {
+    if (currentSection.heading === 'Abstract') {
+      abstractContent = [...currentSection.content];
+    }
+    sections.push(currentSection);
   }
 
-  return lines.join('\n');
+  return {
+    sections,
+    abstractContent,
+    rawText: rawTextParts.join('\n'),
+    headings: sections.filter(s => s.heading).map(s => ({ text: s.heading, level: s.level }))
+  };
 }
 
-function extractColumn(items, xMin, xMax) {
-  // Filter to items in this column
-  const columnItems = items.filter(i => i.x >= xMin && i.x < xMax);
+function sortColumnItems(items) {
+  return [...items].sort((a, b) => b.y - a.y);
+}
 
-  if (columnItems.length === 0) return [];
+function groupIntoLines(items, medianFontSize) {
+  if (items.length === 0) return [];
 
-  // Sort by y position descending (PDF coordinates: y=0 at bottom)
-  columnItems.sort((a, b) => b.y - a.y);
-
-  // Group into lines (items with similar y positions)
   const lines = [];
-  let currentLine = [columnItems[0]];
-  let currentY = columnItems[0].y;
+  let currentLineItems = [items[0]];
+  let currentY = items[0].y;
 
-  for (let i = 1; i < columnItems.length; i++) {
-    const item = columnItems[i];
-    // If y position is close enough, same line
+  for (let i = 1; i < items.length; i++) {
+    const item = items[i];
     if (Math.abs(item.y - currentY) < 5) {
-      currentLine.push(item);
+      currentLineItems.push(item);
     } else {
-      // New line - sort current line by x position and save
-      currentLine.sort((a, b) => a.x - b.x);
-      lines.push(currentLine.map(i => i.str).join(' '));
-      currentLine = [item];
+      lines.push(processLine(currentLineItems, medianFontSize));
+      currentLineItems = [item];
       currentY = item.y;
     }
   }
 
-  // Don't forget the last line
-  if (currentLine.length > 0) {
-    currentLine.sort((a, b) => a.x - b.x);
-    lines.push(currentLine.map(i => i.str).join(' '));
+  if (currentLineItems.length > 0) {
+    lines.push(processLine(currentLineItems, medianFontSize));
   }
 
   return lines;
 }
 
-function cleanText(text) {
-  let cleaned = text;
+function processLine(items, medianFontSize) {
+  items.sort((a, b) => a.x - b.x);
+  const text = items.map(i => i.str).join(' ');
 
-  // Fix hyphenation
-  if (optHyphenation.checked) {
-    // Join words split across lines with hyphens
-    cleaned = cleaned.replace(/(\w+)-\n(\w+)/g, '$1$2');
-    // Also handle with spaces
-    cleaned = cleaned.replace(/(\w+)-\s*\n\s*(\w+)/g, '$1$2');
+  // Determine if this is a heading based on font size and style
+  const avgFontSize = items.reduce((sum, i) => sum + i.fontSize, 0) / items.length;
+  const isBold = items.some(i => i.isBold);
+  const isLarger = avgFontSize > medianFontSize * 1.1;
+  const isMuchLarger = avgFontSize > medianFontSize * 1.3;
+  const isShort = text.length < 80;
+  const startsWithNumber = /^\d+\.?\s/.test(text.trim());
+  const isAllCaps = text === text.toUpperCase() && /[A-Z]/.test(text);
+
+  // Heading detection heuristics
+  const isHeading = isShort && (
+    isMuchLarger ||
+    (isLarger && isBold) ||
+    (isBold && startsWithNumber) ||
+    (isAllCaps && text.length > 3 && text.length < 50)
+  );
+
+  let headingLevel = 0;
+  if (isHeading) {
+    if (isMuchLarger) headingLevel = 1;
+    else if (isLarger) headingLevel = 2;
+    else headingLevel = 3;
   }
 
-  // Remove line numbers (common in preprints)
-  if (optLineNumbers.checked) {
-    // Remove line numbers at the start of lines (1-4 digits followed by space)
-    cleaned = cleaned.replace(/^\s*\d{1,4}\s+/gm, '');
+  return { text, isHeading, headingLevel, fontSize: avgFontSize };
+}
+
+function generateOutput(structuredData, options) {
+  let output = '';
+
+  if (options.abstractOnly) {
+    // Abstract + headings only mode
+    output = generateAbstractAndHeadings(structuredData, options.formatMarkdown);
+  } else {
+    // Full text mode
+    output = generateFullText(structuredData, options);
   }
 
-  // Remove references section
-  if (optReferences.checked) {
-    // Look for common reference section headings
-    const refPatterns = [
-      /\n\s*References\s*\n[\s\S]*$/i,
-      /\n\s*REFERENCES\s*\n[\s\S]*$/,
-      /\n\s*Bibliography\s*\n[\s\S]*$/i,
-      /\n\s*Works Cited\s*\n[\s\S]*$/i,
-    ];
+  return output;
+}
 
-    for (const pattern of refPatterns) {
-      cleaned = cleaned.replace(pattern, '\n\n[References removed]');
+function generateAbstractAndHeadings(data, formatMarkdown) {
+  let parts = [];
+
+  // Find and add abstract
+  const abstractSection = data.sections.find(s =>
+    s.heading && s.heading.toLowerCase() === 'abstract'
+  );
+
+  if (abstractSection) {
+    if (formatMarkdown) {
+      parts.push('## Abstract\n');
+    } else {
+      parts.push('ABSTRACT\n');
+    }
+    parts.push(abstractSection.content.join(' ').trim());
+    parts.push('\n');
+  } else if (data.abstractContent && data.abstractContent.length > 0) {
+    if (formatMarkdown) {
+      parts.push('## Abstract\n');
+    } else {
+      parts.push('ABSTRACT\n');
+    }
+    parts.push(data.abstractContent.join(' ').trim());
+    parts.push('\n');
+  }
+
+  // Add section headings
+  if (formatMarkdown) {
+    parts.push('\n## Structure\n');
+  } else {
+    parts.push('\nSTRUCTURE\n');
+  }
+
+  for (const section of data.sections) {
+    if (section.heading && section.heading.toLowerCase() !== 'abstract') {
+      if (formatMarkdown) {
+        const prefix = '#'.repeat(Math.min(section.level + 1, 4));
+        parts.push(`${prefix} ${section.heading}`);
+      } else {
+        const indent = '  '.repeat(section.level - 1);
+        parts.push(`${indent}- ${section.heading}`);
+      }
     }
   }
 
-  // Clean up excessive whitespace
-  cleaned = cleaned.replace(/\n{4,}/g, '\n\n\n');
-  cleaned = cleaned.replace(/[ \t]+/g, ' ');
-  cleaned = cleaned.trim();
+  return parts.join('\n').trim();
+}
 
-  // Remove common artifacts
-  cleaned = cleaned.replace(/\f/g, ''); // Form feeds
-  cleaned = cleaned.replace(/\ufeff/g, ''); // BOM
+function generateFullText(data, options) {
+  let parts = [];
 
-  return cleaned;
+  for (const section of data.sections) {
+    // Skip references if option enabled
+    if (options.removeReferences && section.heading &&
+        /^(references|bibliography|works cited)/i.test(section.heading)) {
+      if (options.formatMarkdown) {
+        parts.push('\n*[References removed]*\n');
+      } else {
+        parts.push('\n[References removed]\n');
+      }
+      break;
+    }
+
+    if (section.heading) {
+      if (options.formatMarkdown) {
+        const prefix = '#'.repeat(Math.min(section.level + 1, 4));
+        parts.push(`\n${prefix} ${section.heading}\n`);
+      } else {
+        parts.push(`\n${section.heading}\n`);
+      }
+    }
+
+    let content = section.content.join('\n');
+
+    if (options.fixHyphenation) {
+      content = content.replace(/(\w+)-\n(\w+)/g, '$1$2');
+      content = content.replace(/(\w+)-\s*\n\s*(\w+)/g, '$1$2');
+    }
+
+    if (options.removeLineNumbers) {
+      content = content.replace(/^\s*\d{1,4}\s+/gm, '');
+    }
+
+    parts.push(content);
+  }
+
+  let output = parts.join('\n');
+
+  // Clean up whitespace
+  output = output.replace(/\n{4,}/g, '\n\n\n');
+  output = output.replace(/[ \t]+/g, ' ');
+  output = output.replace(/\f/g, '');
+  output = output.replace(/\ufeff/g, '');
+
+  return output.trim();
 }
 
 function displayOutput(text) {
   outputTextarea.value = text;
   outputSection.classList.add('visible');
 
-  // Calculate token estimates (rough: ~4 chars per token for English)
   const originalTokens = Math.ceil(rawText.length / 4);
   const cleanedTokens = Math.ceil(text.length / 4);
   const savedTokens = originalTokens - cleanedTokens;
@@ -574,6 +1197,22 @@ function formatTokens(n) {
     return (n / 1000).toFixed(1) + 'k';
   }
   return n.toString();
+}
+
+function downloadFile(content, filename, mimeType) {
+  const blob = content instanceof Blob ? content : new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 </script>
 </body>
