@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PDF to LLM-Ready Text</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <script type="module">
+    import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.2.67/+esm';
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.2.67/build/pdf.worker.min.mjs";
+    window.pdfjsLib = pdfjsLib;
+  </script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1.5em;
+      line-height: 1.5;
+      background: #fafafa;
+      color: #333;
+    }
+    h1 {
+      margin-bottom: 0.25em;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 1.5em;
+    }
+    .dropzone {
+      width: 100%;
+      min-height: 120px;
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 1em;
+      margin-bottom: 1em;
+      background: white;
+      transition: all 0.2s;
+    }
+    .dropzone:hover {
+      border-color: #999;
+    }
+    .dropzone.drag-over {
+      background-color: #e8f4ff;
+      border-color: #4a90d9;
+    }
+    .dropzone.processing {
+      cursor: wait;
+      background: #f5f5f5;
+    }
+    .options {
+      background: white;
+      padding: 1em;
+      border-radius: 8px;
+      margin-bottom: 1em;
+      border: 1px solid #ddd;
+    }
+    .options h3 {
+      margin: 0 0 0.75em 0;
+      font-size: 14px;
+      text-transform: uppercase;
+      color: #666;
+    }
+    .options label {
+      display: block;
+      margin-bottom: 0.5em;
+      cursor: pointer;
+    }
+    .options input[type="checkbox"] {
+      margin-right: 0.5em;
+    }
+    .output-section {
+      display: none;
+    }
+    .output-section.visible {
+      display: block;
+    }
+    .stats {
+      display: flex;
+      gap: 1.5em;
+      margin-bottom: 1em;
+      flex-wrap: wrap;
+    }
+    .stat {
+      background: white;
+      padding: 0.75em 1em;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+    .stat-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #666;
+    }
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+    }
+    .stat-value.savings {
+      color: #2a9d2a;
+    }
+    .output-container {
+      position: relative;
+    }
+    textarea {
+      width: 100%;
+      height: 500px;
+      padding: 1em;
+      font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
+      font-size: 13px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+    .actions {
+      display: flex;
+      gap: 0.5em;
+      margin-top: 0.75em;
+    }
+    button {
+      padding: 0.6em 1.2em;
+      font-size: 14px;
+      cursor: pointer;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background: white;
+      transition: all 0.2s;
+    }
+    button:hover {
+      background: #f5f5f5;
+      border-color: #999;
+    }
+    button.primary {
+      background: #4a90d9;
+      color: white;
+      border-color: #4a90d9;
+    }
+    button.primary:hover {
+      background: #3a7fc8;
+    }
+    .copy-feedback {
+      color: #2a9d2a;
+      font-size: 14px;
+      margin-left: 0.5em;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .copy-feedback.show {
+      opacity: 1;
+    }
+    footer {
+      margin-top: 2em;
+      padding-top: 1em;
+      border-top: 1px solid #ddd;
+      color: #666;
+      font-size: 14px;
+    }
+    footer a {
+      color: #4a90d9;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>PDF to LLM-Ready Text</h1>
+  <p class="subtitle">Extract clean, token-efficient text from academic papers. Runs entirely in your browser.</p>
+
+  <input type="file" id="fileInput" accept=".pdf" class="hidden" />
+
+  <div class="dropzone" id="dropzone">
+    Drop a PDF here, or click to select
+  </div>
+
+  <div class="options">
+    <h3>Options</h3>
+    <label>
+      <input type="checkbox" id="optHeaders" checked />
+      Remove headers &amp; footers
+    </label>
+    <label>
+      <input type="checkbox" id="optHyphenation" checked />
+      Fix hyphenation (re-join split words)
+    </label>
+    <label>
+      <input type="checkbox" id="optReferences" />
+      Remove references section
+    </label>
+    <label>
+      <input type="checkbox" id="optLineNumbers" />
+      Remove line numbers (for preprints)
+    </label>
+  </div>
+
+  <div class="output-section" id="outputSection">
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Original</div>
+        <div class="stat-value" id="statOriginal">-</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Cleaned</div>
+        <div class="stat-value" id="statCleaned">-</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Saved</div>
+        <div class="stat-value savings" id="statSaved">-</div>
+      </div>
+    </div>
+
+    <div class="output-container">
+      <textarea id="output" readonly></textarea>
+      <div class="actions">
+        <button class="primary" id="copyBtn">Copy to clipboard</button>
+        <button id="downloadBtn">Download as .txt</button>
+        <span class="copy-feedback" id="copyFeedback">Copied!</span>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Uses <a href="https://mozilla.github.io/pdf.js/">PDF.js</a> for text extraction. No files are uploaded to any server.</p>
+    <p>Optimized for academic papers with two-column layouts.</p>
+  </footer>
+
+<script type="module">
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const outputSection = document.getElementById('outputSection');
+const outputTextarea = document.getElementById('output');
+const copyBtn = document.getElementById('copyBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const copyFeedback = document.getElementById('copyFeedback');
+
+const optHeaders = document.getElementById('optHeaders');
+const optHyphenation = document.getElementById('optHyphenation');
+const optReferences = document.getElementById('optReferences');
+const optLineNumbers = document.getElementById('optLineNumbers');
+
+const statOriginal = document.getElementById('statOriginal');
+const statCleaned = document.getElementById('statCleaned');
+const statSaved = document.getElementById('statSaved');
+
+let currentFileName = 'document';
+let rawText = '';
+
+// Event listeners for drag & drop
+dropzone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  dropzone.classList.add('drag-over');
+});
+
+dropzone.addEventListener('dragleave', (e) => {
+  e.preventDefault();
+  dropzone.classList.remove('drag-over');
+});
+
+dropzone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropzone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type === 'application/pdf') {
+    processFile(file);
+  }
+});
+
+dropzone.addEventListener('click', () => {
+  fileInput.click();
+});
+
+fileInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    processFile(file);
+  }
+});
+
+// Re-process when options change
+[optHeaders, optHyphenation, optReferences, optLineNumbers].forEach(opt => {
+  opt.addEventListener('change', () => {
+    if (rawText) {
+      const cleaned = cleanText(rawText);
+      displayOutput(cleaned);
+    }
+  });
+});
+
+// Copy button
+copyBtn.addEventListener('click', async () => {
+  await navigator.clipboard.writeText(outputTextarea.value);
+  copyFeedback.classList.add('show');
+  setTimeout(() => copyFeedback.classList.remove('show'), 2000);
+});
+
+// Download button
+downloadBtn.addEventListener('click', () => {
+  const blob = new Blob([outputTextarea.value], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${currentFileName}-cleaned.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+async function processFile(file) {
+  currentFileName = file.name.replace(/\.pdf$/i, '');
+  dropzone.textContent = 'Processing...';
+  dropzone.classList.add('processing');
+
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+    const totalPages = pdf.numPages;
+    let allPageData = [];
+
+    // Extract text from all pages with position info
+    for (let i = 1; i <= totalPages; i++) {
+      dropzone.textContent = `Processing page ${i} of ${totalPages}...`;
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const viewport = page.getViewport({ scale: 1 });
+
+      allPageData.push({
+        pageNum: i,
+        width: viewport.width,
+        height: viewport.height,
+        items: textContent.items.map(item => ({
+          str: item.str,
+          x: item.transform[4],
+          y: item.transform[5],
+          width: item.width,
+          height: item.height || Math.abs(item.transform[3]),
+          fontName: item.fontName
+        }))
+      });
+    }
+
+    // Reconstruct text with proper reading order
+    rawText = reconstructText(allPageData);
+    const cleaned = cleanText(rawText);
+    displayOutput(cleaned);
+
+    dropzone.textContent = 'Drop another PDF here, or click to select';
+    dropzone.classList.remove('processing');
+
+  } catch (error) {
+    console.error('Error processing PDF:', error);
+    dropzone.textContent = 'Error processing PDF. Try another file.';
+    dropzone.classList.remove('processing');
+  }
+}
+
+function reconstructText(allPageData) {
+  let fullText = '';
+
+  // Detect common headers/footers across pages
+  const headerFooterPatterns = detectHeadersFooters(allPageData);
+
+  for (const pageData of allPageData) {
+    const pageText = processPage(pageData, headerFooterPatterns);
+    fullText += pageText + '\n\n';
+  }
+
+  return fullText;
+}
+
+function detectHeadersFooters(allPageData) {
+  if (allPageData.length < 3) return { headers: [], footers: [] };
+
+  // Look for text that appears in the same position on multiple pages
+  const topTexts = [];
+  const bottomTexts = [];
+
+  for (const page of allPageData) {
+    if (page.items.length === 0) continue;
+
+    const sorted = [...page.items].sort((a, b) => b.y - a.y);
+    const pageHeight = page.height;
+
+    // Get items in top 10% and bottom 10% of page
+    const topItems = sorted.filter(item => item.y > pageHeight * 0.9);
+    const bottomItems = sorted.filter(item => item.y < pageHeight * 0.1);
+
+    topTexts.push(topItems.map(i => i.str.trim()).filter(s => s).join(' '));
+    bottomTexts.push(bottomItems.map(i => i.str.trim()).filter(s => s).join(' '));
+  }
+
+  // Find repeated patterns
+  const headers = findRepeatedStrings(topTexts);
+  const footers = findRepeatedStrings(bottomTexts);
+
+  return { headers, footers };
+}
+
+function findRepeatedStrings(strings) {
+  const counts = {};
+  for (const s of strings) {
+    if (s.length > 2) {
+      counts[s] = (counts[s] || 0) + 1;
+    }
+  }
+  // Return strings that appear on at least 30% of pages
+  const threshold = Math.max(2, strings.length * 0.3);
+  return Object.entries(counts)
+    .filter(([_, count]) => count >= threshold)
+    .map(([str, _]) => str);
+}
+
+function processPage(pageData, headerFooterPatterns) {
+  let items = pageData.items.filter(item => item.str.trim());
+
+  if (items.length === 0) return '';
+
+  const pageWidth = pageData.width;
+  const pageHeight = pageData.height;
+
+  // Remove header/footer items if option enabled
+  if (optHeaders.checked) {
+    items = items.filter(item => {
+      // Remove items in top/bottom margins
+      if (item.y > pageHeight * 0.92 || item.y < pageHeight * 0.08) {
+        const itemText = item.str.trim();
+        // Check if it matches known header/footer patterns
+        for (const pattern of [...headerFooterPatterns.headers, ...headerFooterPatterns.footers]) {
+          if (pattern.includes(itemText) || itemText.includes(pattern)) {
+            return false;
+          }
+        }
+        // Also remove page numbers
+        if (/^\d+$/.test(itemText)) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }
+
+  // Detect if two-column layout
+  const xPositions = items.map(i => i.x);
+  const midPoint = pageWidth / 2;
+  const leftItems = items.filter(i => i.x < midPoint - 20);
+  const rightItems = items.filter(i => i.x >= midPoint - 20);
+
+  const isTwoColumn = leftItems.length > 10 && rightItems.length > 10 &&
+    leftItems.some(i => i.x < pageWidth * 0.4) &&
+    rightItems.some(i => i.x > pageWidth * 0.5);
+
+  let lines;
+
+  if (isTwoColumn) {
+    // Process columns separately
+    const leftText = extractColumn(leftItems, 0, midPoint - 10);
+    const rightText = extractColumn(rightItems, midPoint - 10, pageWidth);
+    lines = [...leftText, ...rightText];
+  } else {
+    // Single column - sort by y position (top to bottom)
+    lines = extractColumn(items, 0, pageWidth);
+  }
+
+  return lines.join('\n');
+}
+
+function extractColumn(items, xMin, xMax) {
+  // Filter to items in this column
+  const columnItems = items.filter(i => i.x >= xMin && i.x < xMax);
+
+  if (columnItems.length === 0) return [];
+
+  // Sort by y position descending (PDF coordinates: y=0 at bottom)
+  columnItems.sort((a, b) => b.y - a.y);
+
+  // Group into lines (items with similar y positions)
+  const lines = [];
+  let currentLine = [columnItems[0]];
+  let currentY = columnItems[0].y;
+
+  for (let i = 1; i < columnItems.length; i++) {
+    const item = columnItems[i];
+    // If y position is close enough, same line
+    if (Math.abs(item.y - currentY) < 5) {
+      currentLine.push(item);
+    } else {
+      // New line - sort current line by x position and save
+      currentLine.sort((a, b) => a.x - b.x);
+      lines.push(currentLine.map(i => i.str).join(' '));
+      currentLine = [item];
+      currentY = item.y;
+    }
+  }
+
+  // Don't forget the last line
+  if (currentLine.length > 0) {
+    currentLine.sort((a, b) => a.x - b.x);
+    lines.push(currentLine.map(i => i.str).join(' '));
+  }
+
+  return lines;
+}
+
+function cleanText(text) {
+  let cleaned = text;
+
+  // Fix hyphenation
+  if (optHyphenation.checked) {
+    // Join words split across lines with hyphens
+    cleaned = cleaned.replace(/(\w+)-\n(\w+)/g, '$1$2');
+    // Also handle with spaces
+    cleaned = cleaned.replace(/(\w+)-\s*\n\s*(\w+)/g, '$1$2');
+  }
+
+  // Remove line numbers (common in preprints)
+  if (optLineNumbers.checked) {
+    // Remove line numbers at the start of lines (1-4 digits followed by space)
+    cleaned = cleaned.replace(/^\s*\d{1,4}\s+/gm, '');
+  }
+
+  // Remove references section
+  if (optReferences.checked) {
+    // Look for common reference section headings
+    const refPatterns = [
+      /\n\s*References\s*\n[\s\S]*$/i,
+      /\n\s*REFERENCES\s*\n[\s\S]*$/,
+      /\n\s*Bibliography\s*\n[\s\S]*$/i,
+      /\n\s*Works Cited\s*\n[\s\S]*$/i,
+    ];
+
+    for (const pattern of refPatterns) {
+      cleaned = cleaned.replace(pattern, '\n\n[References removed]');
+    }
+  }
+
+  // Clean up excessive whitespace
+  cleaned = cleaned.replace(/\n{4,}/g, '\n\n\n');
+  cleaned = cleaned.replace(/[ \t]+/g, ' ');
+  cleaned = cleaned.trim();
+
+  // Remove common artifacts
+  cleaned = cleaned.replace(/\f/g, ''); // Form feeds
+  cleaned = cleaned.replace(/\ufeff/g, ''); // BOM
+
+  return cleaned;
+}
+
+function displayOutput(text) {
+  outputTextarea.value = text;
+  outputSection.classList.add('visible');
+
+  // Calculate token estimates (rough: ~4 chars per token for English)
+  const originalTokens = Math.ceil(rawText.length / 4);
+  const cleanedTokens = Math.ceil(text.length / 4);
+  const savedTokens = originalTokens - cleanedTokens;
+  const savedPercent = originalTokens > 0 ? Math.round((savedTokens / originalTokens) * 100) : 0;
+
+  statOriginal.textContent = formatTokens(originalTokens);
+  statCleaned.textContent = formatTokens(cleanedTokens);
+  statSaved.textContent = savedTokens > 0 ? `-${formatTokens(savedTokens)} (${savedPercent}%)` : '0';
+}
+
+function formatTokens(n) {
+  if (n >= 1000) {
+    return (n / 1000).toFixed(1) + 'k';
+  }
+  return n.toString();
+}
+</script>
+</body>
+</html>
