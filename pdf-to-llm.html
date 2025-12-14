@@ -341,6 +341,10 @@
           <input type="checkbox" id="optAbstractOnly" />
           Abstract + headings only
         </label>
+        <label>
+          <input type="checkbox" id="optFixSpacing" checked />
+          Fix letter spacing (s p a c e d → spaced)
+        </label>
       </div>
     </div>
 
@@ -409,6 +413,10 @@
           <input type="checkbox" id="batchOptAbstractOnly" />
           Abstract + headings only
         </label>
+        <label>
+          <input type="checkbox" id="batchOptFixSpacing" checked />
+          Fix letter spacing
+        </label>
       </div>
     </div>
 
@@ -463,6 +471,7 @@ const optReferences = document.getElementById('optReferences');
 const optLineNumbers = document.getElementById('optLineNumbers');
 const optMarkdown = document.getElementById('optMarkdown');
 const optAbstractOnly = document.getElementById('optAbstractOnly');
+const optFixSpacing = document.getElementById('optFixSpacing');
 
 const statOriginal = document.getElementById('statOriginal');
 const statCleaned = document.getElementById('statCleaned');
@@ -485,6 +494,7 @@ const batchOptHyphenation = document.getElementById('batchOptHyphenation');
 const batchOptReferences = document.getElementById('batchOptReferences');
 const batchOptMarkdown = document.getElementById('batchOptMarkdown');
 const batchOptAbstractOnly = document.getElementById('batchOptAbstractOnly');
+const batchOptFixSpacing = document.getElementById('batchOptFixSpacing');
 
 let batchProcessedFiles = [];
 
@@ -530,7 +540,7 @@ fileInput.addEventListener('change', (e) => {
 });
 
 // Re-process when options change
-[optHeaders, optHyphenation, optReferences, optLineNumbers, optMarkdown, optAbstractOnly].forEach(opt => {
+[optHeaders, optHyphenation, optReferences, optLineNumbers, optMarkdown, optAbstractOnly, optFixSpacing].forEach(opt => {
   opt.addEventListener('change', () => {
     if (structuredData) {
       const output = generateOutput(structuredData, getOptions());
@@ -560,7 +570,8 @@ function getOptions() {
     removeReferences: optReferences.checked,
     removeLineNumbers: optLineNumbers.checked,
     formatMarkdown: optMarkdown.checked,
-    abstractOnly: optAbstractOnly.checked
+    abstractOnly: optAbstractOnly.checked,
+    fixSpacing: optFixSpacing.checked
   };
 }
 
@@ -571,7 +582,8 @@ function getBatchOptions() {
     removeReferences: batchOptReferences.checked,
     removeLineNumbers: false,
     formatMarkdown: batchOptMarkdown.checked,
-    abstractOnly: batchOptAbstractOnly.checked
+    abstractOnly: batchOptAbstractOnly.checked,
+    fixSpacing: batchOptFixSpacing.checked
   };
 }
 
@@ -1164,6 +1176,10 @@ function generateFullText(data, options) {
       content = content.replace(/^\s*\d{1,4}\s+/gm, '');
     }
 
+    if (options.fixSpacing) {
+      content = fixLetterSpacing(content);
+    }
+
     parts.push(content);
   }
 
@@ -1213,6 +1229,26 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+// Fix letter spacing issues where PDFs encode text like "s p a c e d" instead of "spaced"
+function fixLetterSpacing(text) {
+  // Pattern: sequences of single letters separated by single spaces
+  // Match 3+ single letters with spaces between them
+  return text.replace(/\b([a-zA-Z])((?:\s[a-zA-Z]){2,})\b/g, (match) => {
+    // Check if this looks like intentional spacing (acronyms, etc.)
+    // Remove spaces and see if it forms a reasonable word
+    const collapsed = match.replace(/\s/g, '');
+
+    // If original has more spaces than letters, it's likely spaced-out text
+    const spaceCount = (match.match(/\s/g) || []).length;
+    const letterCount = (match.match(/[a-zA-Z]/g) || []).length;
+
+    if (spaceCount >= letterCount - 1) {
+      return collapsed;
+    }
+    return match;
+  });
 }
 </script>
 </body>
