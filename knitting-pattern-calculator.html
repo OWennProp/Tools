@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dynamisk buff-oppskrift</title>
+  <style>
+    :root { color-scheme: light; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      margin: 0; padding: 24px;
+      background: #fff;
+      color: #111;
+    }
+    .wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 18px; }
+    header { display:flex; gap:12px; align-items:baseline; justify-content:space-between; flex-wrap:wrap;}
+    h1 { font-size: 20px; margin: 0; letter-spacing: -0.02em; }
+    .hint { color:#555; font-size: 13px; margin: 0; }
+    .grid { display:grid; grid-template-columns: 1fr; gap: 14px; }
+    @media (min-width: 860px) { .grid { grid-template-columns: 1fr 1fr; } }
+
+    .card {
+      border: 1px solid #e6e6e6;
+      border-radius: 14px;
+      padding: 16px;
+      background: #fafafa;
+    }
+    .card h2 { font-size: 14px; margin: 0 0 10px; color:#222; letter-spacing: 0.01em; }
+    label { display:block; font-size: 13px; color:#333; margin: 10px 0 6px; }
+    input, select {
+      width: 100%;
+      font-size: 14px;
+      padding: 10px 10px;
+      border-radius: 10px;
+      border: 1px solid #d8d8d8;
+      background: #fff;
+      outline: none;
+    }
+    input:focus, select:focus { border-color:#999; }
+    .row { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .row3 { display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+    .pill {
+      display:inline-flex; gap:8px; align-items:center;
+      border: 1px solid #ddd; border-radius: 999px;
+      padding: 6px 10px; background:#fff; font-size: 12px; color:#333;
+    }
+    .pills { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
+    .btns { display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px; }
+    button {
+      font-size: 13px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid #d0d0d0;
+      background: #fff;
+      cursor: pointer;
+    }
+    button.primary { background:#111; color:#fff; border-color:#111; }
+    button:hover { filter: brightness(0.98); }
+
+    .out h3 { margin: 0 0 10px; font-size: 14px; }
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      background: #fff;
+      border: 1px solid #e6e6e6;
+      border-radius: 12px;
+      padding: 12px;
+      white-space: pre-wrap;
+      line-height: 1.45;
+    }
+    .warn {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid #f1d6a8;
+      background: #fff7e8;
+      color: #5a3d00;
+      font-size: 13px;
+    }
+    .ok {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid #cfe9d6;
+      background: #effaf2;
+      color: #0b4b1f;
+      font-size: 13px;
+    }
+    small { color:#666; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Dynamisk buff-oppskrift (1 fil)</h1>
+        <p class="hint">Fyll inn strikkefasthet, mål og mønster → få masketall og en oppskrift som stemmer.</p>
+      </div>
+      <div class="pills" id="statusPills"></div>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Input</h2>
+
+        <div class="row">
+          <div>
+            <label for="gauge">Strikkefasthet (masker per 10 cm)</label>
+            <input id="gauge" type="number" min="10" max="60" step="0.5" value="28">
+            <small>Eksempel: 27–28 m = 10 cm</small>
+          </div>
+          <div>
+            <label for="circ">Ønsket omkrets (cm)</label>
+            <input id="circ" type="number" min="30" max="70" step="0.5" value="45">
+            <small>Buff er elastisk, 42–50 cm er vanlig</small>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="pattern">Mønster</label>
+            <select id="pattern">
+              <option value="rib2x2">2x2 ribb (2 r, 2 vr) — elastisk</option>
+              <option value="stockinette">Glattstrikk (rett rundt) — ruller</option>
+              <option value="brokenRib">Brutt ribb (3 omg ribb + 1 omg rett)</option>
+            </select>
+          </div>
+          <div>
+            <label for="needle">Pinner (mm) (info)</label>
+            <input id="needle" type="number" min="2" max="10" step="0.25" value="3">
+            <small>Pinne påvirker fasthet – men vi bruker fastheten du oppgir.</small>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="lengthMode">Lengde</label>
+            <select id="lengthMode">
+              <option value="range">Mål: ca. 34–40 cm</option>
+              <option value="exact">Mål: eksakt cm</option>
+              <option value="yarn">Til garnet nesten er brukt opp</option>
+            </select>
+          </div>
+          <div>
+            <label for="lengthExact">Eksakt lengde (cm)</label>
+            <input id="lengthExact" type="number" min="10" max="80" step="0.5" value="38" disabled>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="ease">Stramhet (negativ ease, %)</label>
+            <input id="ease" type="number" min="-20" max="20" step="1" value="0">
+            <small>0% = som målet. 5–10% kan gi tettere passform i ribb.</small>
+          </div>
+          <div>
+            <label for="edgeRib">Ribbkant (kun for glattstrikk)</label>
+            <select id="edgeRib" disabled>
+              <option value="yes">Ja: 4–6 cm ribb i hver ende</option>
+              <option value="no">Nei (vil rulle mer)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="btns">
+          <button class="primary" id="generateBtn">Generer oppskrift</button>
+          <button id="copyBtn">Kopier tekst</button>
+          <button id="resetBtn">Reset</button>
+        </div>
+      </section>
+
+      <section class="card out">
+        <h2>Output</h2>
+        <h3>Oppskrift</h3>
+        <div class="mono" id="output"></div>
+        <div id="messages"></div>
+      </section>
+    </div>
+  </div>
+
+<script>
+/** Pattern "modules" */
+const PATTERNS = {
+  rib2x2: {
+    id: "rib2x2",
+    name: "2x2 ribb",
+    repeat: 4,
+    elasticity: "høy",
+    notes: ["Elastisk og nybegynnervennlig.", "Ruller ikke."],
+    instructions: ({ castOn, lengthText }) => [
+      `Legg opp ${castOn} masker og sett sammen til ring.`,
+      `Strikk rundt i 2x2 ribb: *2 rett, 2 vrang* (gjenta).`,
+      `Fortsett til ${lengthText}.`,
+      `Fell av løst (elastisk). Fest trådene.`
+    ]
+  },
+  stockinette: {
+    id: "stockinette",
+    name: "Glattstrikk",
+    repeat: 1,
+    elasticity: "lav–middels",
+    notes: ["Glattstrikk ruller i kantene.", "Anbefaler ribbkant for finere avslutning."],
+    instructions: ({ castOn, lengthText, edgeRibYes }) => {
+      const steps = [];
+      steps.push(`Legg opp ${castOn} masker og sett sammen til ring.`);
+      if (edgeRibYes) {
+        steps.push(`Strikk 4–6 cm 2x2 ribb i starten: *2 rett, 2 vrang*.`);
+        steps.push(`Strikk deretter glattstrikk (rett rundt) til arbeidet nesten har ønsket lengde.`);
+        steps.push(`Avslutt med 4–6 cm 2x2 ribb: *2 rett, 2 vrang*.`);
+      } else {
+        steps.push(`Strikk glattstrikk rundt (rett på hver omgang).`);
+      }
+      steps.push(`Fortsett til ${lengthText}.`);
+      steps.push(`Fell av løst. Fest trådene.`);
+      return steps;
+    }
+  },
+  brokenRib: {
+    id: "brokenRib",
+    name: "Brutt ribb",
+    repeat: 4,
+    elasticity: "middels–høy",
+    notes: ["Strukturert, men fortsatt elastisk.", "Enkelt å huske."],
+    instructions: ({ castOn, lengthText }) => [
+      `Legg opp ${castOn} masker og sett sammen til ring.`,
+      `Mønster (gjentas):`,
+      `  Omg 1–3: *2 rett, 2 vrang* rundt.`,
+      `  Omg 4: rett rundt (alle masker rett).`,
+      `Fortsett til ${lengthText}.`,
+      `Fell av løst. Fest trådene.`
+    ]
+  }
+};
+
+function roundToNearestMultiple(x, m) {
+  if (m <= 1) return Math.round(x);
+  const down = Math.floor(x / m) * m;
+  const up = Math.ceil(x / m) * m;
+  return (x - down <= up - x) ? down : up;
+}
+
+function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
+
+function fmt(n) {
+  // nicer numbers: 45 -> "45", 45.5 -> "45,5"
+  const s = (Math.round(n * 10) / 10).toString();
+  return s.replace(".", ",");
+}
+
+function compute() {
+  const gauge = parseFloat(document.getElementById("gauge").value);
+  const circ = parseFloat(document.getElementById("circ").value);
+  const easePct = parseFloat(document.getElementById("ease").value);
+  const patternId = document.getElementById("pattern").value;
+  const lengthMode = document.getElementById("lengthMode").value;
+  const lengthExact = parseFloat(document.getElementById("lengthExact").value);
+  const edgeRib = document.getElementById("edgeRib").value;
+
+  const warnings = [];
+  const pattern = PATTERNS[patternId];
+
+  if (!Number.isFinite(gauge) || gauge <= 0) warnings.push("Strikkefasthet må være et positivt tall.");
+  if (!Number.isFinite(circ) || circ <= 0) warnings.push("Omkrets må være et positivt tall.");
+
+  // Ease: adjust circumference
+  const effectiveCirc = circ * (1 - easePct / 100);
+
+  const stsPerCm = gauge / 10;
+  const raw = effectiveCirc * stsPerCm;
+  let castOn = roundToNearestMultiple(raw, pattern.repeat);
+
+  // Guardrails
+  castOn = clamp(castOn, 60, 260);
+
+  const delta = Math.abs(castOn - raw);
+  if (pattern.repeat > 1 && delta >= pattern.repeat) {
+    warnings.push(`Masketallet er avrundet til ${castOn} for å passe mønsterets rapport (${pattern.repeat}).`);
+  }
+
+  if (gauge < 16 || gauge > 40) warnings.push("Strikkefastheten virker uvanlig. Sjekk at du har målt per 10 cm.");
+  if (circ < 35 || circ > 60) warnings.push("Omkretsen er utenfor typisk buff-område. Sjekk verdien.");
+
+  let lengthText = "ca. 34–40 cm";
+  if (lengthMode === "exact") lengthText = `${fmt(lengthExact)} cm`;
+  if (lengthMode === "yarn") lengthText = "til du har ca. 10 cm garn igjen til felling";
+
+  // Pattern-specific UX
+  const isStock = patternId === "stockinette";
+  document.getElementById("edgeRib").disabled = !isStock;
+
+  if (isStock && edgeRib === "no") {
+    warnings.push("Glattstrikk ruller i endene. Ribbkant anbefales for pent resultat.");
+  }
+
+  // Status pills
+  const pills = [];
+  pills.push({ label: `Legg opp: ${castOn} m`, ok: true });
+  pills.push({ label: `${pattern.name} • rapport ${pattern.repeat}`, ok: true });
+  pills.push({ label: `Omkrets: ${fmt(circ)} cm`, ok: true });
+  pills.push({ label: `Fasthet: ${fmt(gauge)} m/10cm`, ok: true });
+
+  return { gauge, circ, easePct, effectiveCirc, pattern, castOn, lengthText, warnings, pills, edgeRib };
+}
+
+function generateText(state) {
+  const { gauge, circ, easePct, effectiveCirc, pattern, castOn, lengthText, edgeRib } = state;
+  const edgeRibYes = edgeRib === "yes";
+
+  const meta = [
+    `Dynamisk buff-oppskrift`,
+    ``,
+    `Input`,
+    `- Strikkefasthet: ${fmt(gauge)} masker per 10 cm`,
+    `- Omkrets (mål): ${fmt(circ)} cm`,
+    `- Stramhet (ease): ${fmt(easePct)} % → effektiv omkrets ${fmt(effectiveCirc)} cm`,
+    `- Mønster: ${pattern.name}`,
+    ``,
+    `Beregning`,
+    `- Masker per cm: ${fmt(gauge/10)}`,
+    `- Rått maskeantall: ${fmt(effectiveCirc * (gauge/10))}`,
+    `- Avrundet til rapport ${pattern.repeat}: ${castOn} masker`,
+    ``,
+    `Oppskrift`,
+  ].join("\n");
+
+  const steps = pattern.instructions({ castOn, lengthText, edgeRibYes }).map(s => `- ${s}`).join("\n");
+
+  const notes = [
+    ``,
+    `Notater`,
+    ...pattern.notes.map(n => `- ${n}`),
+    `- Fell av løst for å beholde elastisiteten.`,
+  ].join("\n");
+
+  return `${meta}\n${steps}\n${notes}`;
+}
+
+function render() {
+  const state = compute();
+  const out = document.getElementById("output");
+  const messages = document.getElementById("messages");
+  const status = document.getElementById("statusPills");
+
+  // Render pills
+  status.innerHTML = "";
+  state.pills.forEach(p => {
+    const el = document.createElement("span");
+    el.className = "pill";
+    el.textContent = p.label;
+    status.appendChild(el);
+  });
+
+  // Render output
+  out.textContent = generateText(state);
+
+  // Render messages
+  messages.innerHTML = "";
+  if (state.warnings.length) {
+    const w = document.createElement("div");
+    w.className = "warn";
+    w.innerHTML = `<b>Merk</b><br>${state.warnings.map(x => `• ${x}`).join("<br>")}`;
+    messages.appendChild(w);
+  } else {
+    const ok = document.createElement("div");
+    ok.className = "ok";
+    ok.textContent = "Ser bra ut. Tallene henger sammen med valgt strikkefasthet og mønster.";
+    messages.appendChild(ok);
+  }
+}
+
+function copyOutput() {
+  const text = document.getElementById("output").textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById("copyBtn");
+    const old = btn.textContent;
+    btn.textContent = "Kopiert!";
+    setTimeout(() => btn.textContent = old, 1000);
+  });
+}
+
+function resetAll() {
+  document.getElementById("gauge").value = 28;
+  document.getElementById("circ").value = 45;
+  document.getElementById("pattern").value = "rib2x2";
+  document.getElementById("needle").value = 3;
+  document.getElementById("lengthMode").value = "range";
+  document.getElementById("lengthExact").value = 38;
+  document.getElementById("lengthExact").disabled = true;
+  document.getElementById("ease").value = 0;
+  document.getElementById("edgeRib").value = "yes";
+  render();
+}
+
+// Wire up
+document.getElementById("generateBtn").addEventListener("click", render);
+document.getElementById("copyBtn").addEventListener("click", copyOutput);
+document.getElementById("resetBtn").addEventListener("click", resetAll);
+
+document.getElementById("lengthMode").addEventListener("change", (e) => {
+  const mode = e.target.value;
+  document.getElementById("lengthExact").disabled = (mode !== "exact");
+  render();
+});
+
+["gauge","circ","pattern","needle","lengthExact","ease","edgeRib"].forEach(id => {
+  document.getElementById(id).addEventListener("input", () => render());
+  document.getElementById(id).addEventListener("change", () => render());
+});
+
+// initial render
+render();
+</script>
+</body>
+</html>
