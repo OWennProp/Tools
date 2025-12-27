@@ -6,18 +6,18 @@
   <title>Dynamisk buff-oppskrift</title>
   <style>
     :root { color-scheme: light; }
+    *, *::before, *::after { box-sizing: border-box; }
     body {
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      margin: 0; padding: 24px;
+      margin: 0; padding: 16px;
       background: #fff;
       color: #111;
     }
-    .wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 18px; }
-    header { display:flex; gap:12px; align-items:baseline; justify-content:space-between; flex-wrap:wrap;}
-    h1 { font-size: 20px; margin: 0; letter-spacing: -0.02em; }
-    .hint { color:#555; font-size: 13px; margin: 0; }
+    .wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 16px; }
+    header { display:flex; flex-direction: column; gap:12px; }
+    h1 { font-size: 18px; margin: 0; letter-spacing: -0.02em; }
+    .hint { color:#555; font-size: 14px; margin: 0; line-height: 1.4; }
     .grid { display:grid; grid-template-columns: 1fr; gap: 14px; }
-    @media (min-width: 860px) { .grid { grid-template-columns: 1fr 1fr; } }
 
     .card {
       border: 1px solid #e6e6e6;
@@ -25,69 +25,104 @@
       padding: 16px;
       background: #fafafa;
     }
-    .card h2 { font-size: 14px; margin: 0 0 10px; color:#222; letter-spacing: 0.01em; }
-    label { display:block; font-size: 13px; color:#333; margin: 10px 0 6px; }
+    .card h2 { font-size: 15px; margin: 0 0 10px; color:#222; letter-spacing: 0.01em; }
+    label { display:block; font-size: 14px; color:#333; margin: 12px 0 6px; font-weight: 500; }
     input, select {
       width: 100%;
-      font-size: 14px;
-      padding: 10px 10px;
+      font-size: 16px; /* Prevents iOS zoom on focus */
+      padding: 12px;
       border-radius: 10px;
       border: 1px solid #d8d8d8;
       background: #fff;
       outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
     }
     input:focus, select:focus { border-color:#999; }
-    .row { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .row3 { display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+    /* Stack inputs on mobile */
+    .row { display:grid; grid-template-columns: 1fr; gap: 4px; }
+    .row3 { display:grid; grid-template-columns: 1fr; gap: 4px; }
 
     .pill {
       display:inline-flex; gap:8px; align-items:center;
       border: 1px solid #ddd; border-radius: 999px;
-      padding: 6px 10px; background:#fff; font-size: 12px; color:#333;
+      padding: 8px 12px; background:#fff; font-size: 13px; color:#333;
     }
-    .pills { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
-    .btns { display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px; }
+    .pills { display:flex; flex-wrap:wrap; gap:8px; }
+    .btns { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
     button {
-      font-size: 13px;
-      padding: 10px 12px;
+      font-size: 15px;
+      padding: 14px 16px;
       border-radius: 12px;
       border: 1px solid #d0d0d0;
       background: #fff;
       cursor: pointer;
+      touch-action: manipulation;
     }
-    button.primary { background:#111; color:#fff; border-color:#111; }
+    button.primary {
+      background:#111; color:#fff; border-color:#111;
+      grid-column: 1 / -1; /* Full width on mobile */
+    }
     button:hover { filter: brightness(0.98); }
+    button:active { transform: scale(0.98); }
 
-    .out h3 { margin: 0 0 10px; font-size: 14px; }
+    .out h3 { margin: 0 0 10px; font-size: 15px; }
     .mono {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      font-size: 12px;
+      font-size: 13px;
       background: #fff;
       border: 1px solid #e6e6e6;
       border-radius: 12px;
-      padding: 12px;
+      padding: 14px;
       white-space: pre-wrap;
-      line-height: 1.45;
+      line-height: 1.5;
+      overflow-x: auto;
     }
     .warn {
-      margin-top: 10px;
-      padding: 10px 12px;
+      margin-top: 12px;
+      padding: 12px 14px;
       border-radius: 12px;
       border: 1px solid #f1d6a8;
       background: #fff7e8;
       color: #5a3d00;
-      font-size: 13px;
+      font-size: 14px;
+      line-height: 1.4;
     }
     .ok {
-      margin-top: 10px;
-      padding: 10px 12px;
+      margin-top: 12px;
+      padding: 12px 14px;
       border-radius: 12px;
       border: 1px solid #cfe9d6;
       background: #effaf2;
       color: #0b4b1f;
-      font-size: 13px;
+      font-size: 14px;
+      line-height: 1.4;
     }
-    small { color:#666; }
+    small { color:#666; font-size: 13px; display: block; margin-top: 4px; }
+
+    /* Tablet and up */
+    @media (min-width: 600px) {
+      body { padding: 24px; }
+      .wrap { gap: 18px; }
+      header { flex-direction: row; align-items: baseline; justify-content: space-between; }
+      h1 { font-size: 20px; }
+      .row { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .row3 { grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+      .btns { display: flex; flex-wrap: wrap; }
+      button.primary { grid-column: auto; }
+    }
+
+    /* Desktop */
+    @media (min-width: 860px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
   </style>
 </head>
 <body>
